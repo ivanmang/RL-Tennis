@@ -37,12 +37,12 @@ class MADDPG:
         if self.t_step == 0:
             # Learn, if enough samples are available in memory
             if len(self.memory) > BATCH_SIZE:
-                experiences = self.memory.sample()
-                self.learn(experiences, GAMMA)
+                for agent in self.agents:
+                    experiences = self.memory.sample()
+                    self.learn(experiences, agent, GAMMA)
 
-    def learn(self, experiences, gamma=GAMMA):
-        for agent in self.agents:
-            agent.learn(experiences, gamma)
+    def learn(self, experiences, agent, gamma=GAMMA):
+        agent.learn(experiences, gamma)
             
     
     def reset(self):
