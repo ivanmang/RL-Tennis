@@ -13,7 +13,7 @@ import torch.optim as optim
 LR_ACTOR = 1e-4         # learning rate of the actor 
 LR_CRITIC = 5e-4        # learning rate of the critic
 WEIGHT_DECAY = 0        # L2 weight decay
-TAU = 0.9
+TAU = 0.8
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -97,6 +97,7 @@ class Agent():
         # Minimize the loss
         self.critic_optimizer.zero_grad()
         critic_loss.backward()
+        # torch.nn.utils.clip_grad_norm(self.critic_local.parameters(), 1)
         self.critic_optimizer.step()
 
         # ---------------------------- update actor ---------------------------- #

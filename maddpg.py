@@ -45,13 +45,16 @@ class MADDPG:
         #Feed the states of that agent into the actor of that agent
         actions_next = [a.actor_target(next_states.index_select(1, torch.tensor([i])).squeeze(1)) for i, a in enumerate(self.agents)]
         
-        #actions_pred = [a.actor_local(states.index_select(1, torch.tensor([i])).squeeze(1)) for i, a in enumerate(self.agents)]
         # Combine the actions from both agents in one tensor
         actions_next = torch.cat(actions_next, dim=1).to(device)
-        #actions_pred = torch.cat(actions_pred, dim=1).to(device)
+
         agent_action_pred = agent.actor_local(states.index_select(1, agent.id).squeeze(1))
+        
         actions_pred = [agent_action_pred if j==agent.id.numpy()[0] else actions.index_select(1, torch.tensor([j]).to(device)).squeeze(1) for j, agent_j in enumerate(self.agents)]
+        
+        # Combine the actions from both agents in one tensor
         actions_pred = torch.cat(actions_pred, dim=1).to(device)
+        
         agent.learn(experiences, actions_next, actions_pred, gamma)
             
     
@@ -61,5 +64,5 @@ class MADDPG:
             
     def save_weight(self):
         for i, agent in enumerate(self.agents):
-            torch.save(agent.actor_local.state_dict(), 'checkpoint_actor_{i}.pth')
-            torch.save(agent.critic_local.state_dict(), 'checkpoint_critic_{i}.pth') 
+            torch.save(agent.actor_local.state_dict(), f'checkpoint_actor_{i}.pth')
+            torch.save(agent.critic_local.state_dict(), f'checkpoint_critic_{i}.pth') 
