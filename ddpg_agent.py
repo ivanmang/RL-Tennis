@@ -77,36 +77,30 @@ class Agent():
             gamma (float): discount factor
         """
         states, actions, rewards, next_states, dones = experiences
-
-        # ---------------------------- update critic ---------------------------- #
-        # Get predicted next-state actions and Q values from target models
-        # actions_next = self.actor_target(next_states)
-        Q_targets_next = self.critic_target(next_states.reshape(next_states.shape[0], -1), actions_next)
+        rewards = rewards.unsqueeze(-1)
+        dones = dones.unsqueeze(-1)
+        
+        # ---------------------------- update critic ----------------------------
+        
+        Q_targets_next = self.critic_target(next_states.reshape(next_states.shape[0], -1), actions_next.reshape(next_states.shape[0], -1))
         # Compute Q targets for current states (y_i)
-        #print(dones)
-        #Q_targets = rewards + (gamma * Q_targets_next * (1 - dones))
-        # actions = torch.cat(actions, dim=1).to(device)
-        # print(actions)
-        # Compute critic loss
-        #Q_expected = self.critic_local(states.reshape(states.shape[0], -1), actions.reshape(actions.shape[0], -1))
         Q_targets = rewards.index_select(1, self.id).squeeze(1) + (gamma * Q_targets_next * (1 - dones.index_select(1, self.id).squeeze(1)))
         # Compute critic loss
         Q_expected = self.critic_local(states.reshape(states.shape[0], -1), actions.reshape(actions.shape[0], -1))
+
         critic_loss = F.mse_loss(Q_expected, Q_targets)
         # Minimize the loss
         self.critic_optimizer.zero_grad()
         critic_loss.backward()
-        torch.nn.utils.clip_grad_norm(self.critic_local.parameters(), 1)
         self.critic_optimizer.step()
 
         # ---------------------------- update actor ---------------------------- #
-        # Compute actor loss
-        # actions_pred = self.actor_local(states)
+        
         actor_loss = -self.critic_local(states.reshape(states.shape[0], -1), actions_pred.reshape(actions_pred.shape[0], -1)).mean()
         # Minimize the loss
         self.actor_optimizer.zero_grad()
         actor_loss.backward()
-        self.actor_optimizer.step()
+        self.actor_optimizer.step()               
 
         # ----------------------- update target networks ----------------------- #
 #         self.soft_update(self.critic_local, self.critic_target, TAU)
