@@ -20,7 +20,7 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 class Agent():
     """Interacts with and learns from the environment."""
     
-    def __init__(self, state_size, action_size, random_seed):
+    def __init__(self, ident, state_size, action_size, random_seed):
         """Initialize an Agent object.
         
         Params
@@ -29,6 +29,7 @@ class Agent():
             action_size (int): dimension of each action
             random_seed (int): random seed
         """
+        self.id = ident
         self.state_size = state_size
         self.action_size = action_size
         self.seed = random.seed(random_seed)
@@ -39,8 +40,8 @@ class Agent():
         self.actor_optimizer = optim.Adam(self.actor_local.parameters(), lr=LR_ACTOR)
 
         # Critic Network (w/ Target Network)
-        self.critic_local = Critic(state_size, action_size, random_seed).to(device)
-        self.critic_target = Critic(state_size, action_size, random_seed).to(device)
+        self.critic_local = Critic(2 * state_size, 2 * action_size, random_seed).to(device)
+        self.critic_target = Critic(2 * state_size, 2 * action_size, random_seed).to(device)
         self.critic_optimizer = optim.Adam(self.critic_local.parameters(), lr=LR_CRITIC, weight_decay=WEIGHT_DECAY)
 
         # Noise process
@@ -64,7 +65,7 @@ class Agent():
     def reset(self):
         self.noise.reset()
 
-    def learn(self, experiences, gamma):
+    def learn(self, experiences, actions_next, actions_pred, gamma):
         """Update policy and value parameters using given batch of experience tuples.
         Q_targets = r + γ * critic_target(next_state, actor_target(next_state))
         where:
@@ -79,12 +80,14 @@ class Agent():
 
         # ---------------------------- update critic ---------------------------- #
         # Get predicted next-state actions and Q values from target models
-        actions_next = self.actor_target(next_states)
-        Q_targets_next = self.critic_target(next_states, actions_next)
+        # actions_next = self.actor_target(next_states)
+        Q_targets_next = self.critic_target(next_states.reshape(next_states.shape[0], -1), actions_next)
         # Compute Q targets for current states (y_i)
         Q_targets = rewards + (gamma * Q_targets_next * (1 - dones))
+        # actions = torch.cat(actions, dim=1).to(device)
+        # print(actions)
         # Compute critic loss
-        Q_expected = self.critic_local(states, actions)
+        Q_expected = self.critic_local(states.reshape(states.shape[0], -1), actions.reshape(actions.shape[0], -1))
         critic_loss = F.mse_loss(Q_expected, Q_targets)
         # Minimize the loss
         self.critic_optimizer.zero_grad()
@@ -94,8 +97,8 @@ class Agent():
 
         # ---------------------------- update actor ---------------------------- #
         # Compute actor loss
-        actions_pred = self.actor_local(states)
-        actor_loss = -self.critic_local(states, actions_pred).mean()
+        # actions_pred = self.actor_local(states)
+        actor_loss = -self.critic_local(states.reshape(states.shape[0], -1), actions_pred).mean()
         # Minimize the loss
         self.actor_optimizer.zero_grad()
         actor_loss.backward()
