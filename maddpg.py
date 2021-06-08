@@ -12,7 +12,7 @@ BUFFER_SIZE = int(1e6)  # replay buffer size
 BATCH_SIZE = 256        # minibatch size
 GAMMA = 0.99            # discount factor
 UPDATE_EVERY = 2        # how often to update the network
-TAU = 0.9 
+
 
 class MADDPG:
     def __init__(self, num_agents, state_size, action_size, random_seed):
@@ -21,7 +21,7 @@ class MADDPG:
         self.memory = ReplayBuffer(action_size, BUFFER_SIZE, BATCH_SIZE, seed=random_seed)
         self.t_step = 0
         
-
+    
     def act(self, states, add_noise=True):
         """get actions of all the agents in the MADDPG object"""
         actions = [np.squeeze(agent.act(np.expand_dims(state, axis=0), add_noise), axis=0) for agent, state in zip(self.agents, states)]
@@ -37,10 +37,7 @@ class MADDPG:
             if len(self.memory) > BATCH_SIZE:
                 for agent in self.agents:
                     experiences = self.memory.sample()
-                    self.learn(experiences, agent, GAMMA)
-                for agent in self.agents:
-                    agent.soft_update(agent.critic_local,agent.critic_target,TAU)
-                    agent.soft_update(agent.actor_local,agent.actor_target,TAU)    
+                    self.learn(experiences, agent, GAMMA)  
 
     def learn(self, experiences, agent, gamma=GAMMA):
         states, actions, rewards, next_states, dones = experiences
@@ -61,3 +58,8 @@ class MADDPG:
     def reset(self):
         for agent in self.agents:
             agent.noise.reset()
+            
+    def save_weight(self):
+        for i, agent in enumerate(self.agents):
+            torch.save(agent.actor_local.state_dict(), 'checkpoint_actor_{i}.pth')
+            torch.save(agent.critic_local.state_dict(), 'checkpoint_critic_{i}.pth') 
