@@ -29,7 +29,7 @@ class Agent():
             action_size (int): dimension of each action
             random_seed (int): random seed
         """
-        self.id = ident
+        self.id = torch.tensor([ident]).to(device)
         self.state_size = state_size
         self.action_size = action_size
         self.seed = random.seed(random_seed)
@@ -83,9 +83,13 @@ class Agent():
         # actions_next = self.actor_target(next_states)
         Q_targets_next = self.critic_target(next_states.reshape(next_states.shape[0], -1), actions_next)
         # Compute Q targets for current states (y_i)
-        Q_targets = rewards + (gamma * Q_targets_next * (1 - dones))
+        #print(dones)
+        #Q_targets = rewards + (gamma * Q_targets_next * (1 - dones))
         # actions = torch.cat(actions, dim=1).to(device)
         # print(actions)
+        # Compute critic loss
+        #Q_expected = self.critic_local(states.reshape(states.shape[0], -1), actions.reshape(actions.shape[0], -1))
+        Q_targets = rewards.index_select(1, self.id).squeeze(1) + (gamma * Q_targets_next * (1 - dones.index_select(1, self.id).squeeze(1)))
         # Compute critic loss
         Q_expected = self.critic_local(states.reshape(states.shape[0], -1), actions.reshape(actions.shape[0], -1))
         critic_loss = F.mse_loss(Q_expected, Q_targets)
@@ -105,8 +109,8 @@ class Agent():
         self.actor_optimizer.step()
 
         # ----------------------- update target networks ----------------------- #
-        self.soft_update(self.critic_local, self.critic_target, TAU)
-        self.soft_update(self.actor_local, self.actor_target, TAU)                     
+#         self.soft_update(self.critic_local, self.critic_target, TAU)
+#         self.soft_update(self.actor_local, self.actor_target, TAU)                     
 
     def soft_update(self, local_model, target_model, tau):
         """Soft update model parameters.

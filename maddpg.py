@@ -11,6 +11,7 @@ BUFFER_SIZE = int(1e6)  # replay buffer size
 BATCH_SIZE = 256        # minibatch size
 GAMMA = 0.99            # discount factor
 UPDATE_EVERY = 1        # how often to update the network
+TAU = 1e-3  
 
 class MADDPG:
     def __init__(self, num_agents, state_size, action_size, random_seed):
@@ -39,6 +40,9 @@ class MADDPG:
                 for agent in self.agents:
                     experiences = self.memory.sample()
                     self.learn(experiences, agent, GAMMA)
+        for agent in self.agents:
+            agent.soft_update(agent.critic_local,agent.critic_target,TAU)
+            agent.soft_update(agent.actor_local,agent.actor_target,TAU)    
 
     def learn(self, experiences, agent, gamma=GAMMA):
         states, actions, rewards, next_states, dones = experiences
