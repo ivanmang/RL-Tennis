@@ -11,8 +11,8 @@ import torch.optim as optim
 
 
 TAU = 1e-3              # for soft update of target parameters
-LR_ACTOR = 1e-2         # learning rate of the actor 
-LR_CRITIC = 1e-2        # learning rate of the critic
+LR_ACTOR = 1e-4         # learning rate of the actor 
+LR_CRITIC = 1e-4        # learning rate of the critic
 WEIGHT_DECAY = 0        # L2 weight decay
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -102,7 +102,7 @@ class Agent():
         # ---------------------------- update actor ---------------------------- #
         # Compute actor loss
         # actions_pred = self.actor_local(states)
-        actor_loss = -self.critic_local(states.reshape(states.shape[0], -1), actions_pred).mean()
+        actor_loss = -self.critic_local(states.reshape(states.shape[0], -1), actions_pred.reshape(actions_pred.shape[0], -1)).mean()
         # Minimize the loss
         self.actor_optimizer.zero_grad()
         actor_loss.backward()
@@ -146,3 +146,25 @@ class OUNoise:
         dx = self.theta * (self.mu - x) + self.sigma * np.random.standard_normal(self.size)
         self.state = x + dx
         return self.state
+    
+    
+class RandomNoise:
+    """Random noise process."""
+    def __init__(self, size, weight, min_weight, noise_decay,
+                 begin_noise_at, seed):
+        self.size = size
+        self.weight_start = weight
+        self.weight = weight
+        self.min_weight = min_weight
+        self.noise_decay = noise_decay
+        self.begin_noise_at = begin_noise_at
+        self.seed = random.seed(seed)
+
+    def reset(self):
+        self.weight = self.weight_start
+
+    def sample(self, i_episode):
+        pwr = max(0, i_episode - self.begin_noise_at)
+        if pwr > 0:
+            self.weight = max(self.min_weight, self.noise_decay**pwr)
+        return self.weight * 0.5 * np.random.standard_normal(self.size)
