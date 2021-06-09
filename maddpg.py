@@ -24,7 +24,9 @@ class MADDPG:
     
     def act(self, states, add_noise=True):
         """get actions of all the agents in the MADDPG object"""
-        actions = [np.squeeze(agent.act(np.expand_dims(state, axis=0), add_noise), axis=0) for agent, state in zip(self.agents, states)]
+        actions = []
+        for agent, state in zip(self.agents, states):
+            actions.append(agent.act(np.expand_dims(state, axis=0), add_noise).squeeze(0))
         return np.stack(actions)
 
     def step(self, states, actions, rewards, next_states, dones):
@@ -48,11 +50,12 @@ class MADDPG:
         # Combine the actions from both agents in one tensor
         actions_next = torch.cat(actions_next, dim=1).to(device)
 
+
+        # Get the predicted actions from the actor
         agent_action_pred = agent.actor_local(states.index_select(1, agent.id).squeeze(1))
         
-        actions_pred = [agent_action_pred if j==agent.id.numpy()[0] else actions.index_select(1, torch.tensor([j]).to(device)).squeeze(1) for j, agent_j in enumerate(self.agents)]
-        
-        # Combine the actions from both agents in one tensor
+        actions_pred = [agent_action_pred if i==agent.id.numpy()[0] else actions.index_select(1, torch.tensor([i]).to(device)).squeeze(1) for i, _ in enumerate(self.agents)]
+
         actions_pred = torch.cat(actions_pred, dim=1).to(device)
         
         agent.learn(experiences, actions_next, actions_pred, gamma)
