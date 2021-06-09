@@ -49,9 +49,10 @@ The agent solved the environment in 2395 episodes.
 `Environment solved in 2395 episodes!	Average Score: 0.50`
 
 ![Screenshot from 2021-06-09 20-47-14](https://user-images.githubusercontent.com/35868876/121356933-f0925800-c963-11eb-9380-dacb109b9163.png)
+
 The blue line shows the maximum score over both agents, for each episode, and the orange line shows the average score (after taking the maximum over both agents) over the next 100 episodes.
 
-Note that the agents perform horribly starting around episode 2900 and show no evidence of recovery. However, at one point, we accomplished an average score (over 100 episodes) of +0.783!
+Note that the agents perform horribly starting around episode 2900. However, at 2800 episode we accomplished an average score (over 100 episodes) of +0.783!
 
 From the graph, we can see that the average reward peaked at around 34 on ~120 episodes and the reward oscillates in a declining trend.
 
