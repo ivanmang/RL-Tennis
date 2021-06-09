@@ -45,3 +45,13 @@ The input of the network is 48 as the 2 agent's state size 2x24. The first hidde
 
 
 ### Result
+
+
+From the graph, we can see that the average reward peaked at around 34 on ~120 episodes and the reward oscillates in a declining trend.
+
+### Future work
+We believe some more works can be done to improve agents performance:
+1. Implement a algorithms training agents with an ensemble of policies, combining the predictions from two or more models.
+2. Implement algorithms from ([AlphaZero](https://arxiv.org/abs/1712.01815))
+3. Redesign the neural network in `model.py`
+4. Further tune and optimize the hyperparamter
