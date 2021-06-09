@@ -38,7 +38,7 @@ This file cotain the architecture of the network of the Actor and Critic model.
 The input of the network is 24 as the state size is 24. The first hidden layer has 256 nodes, followed by a Batch Normalization layer. Then, the second hidden layer contains 256 nodes. The output layer is 2 which is the action size. All these layers are separated by Rectifier Linear Units (ReLu) except the output layer using the `tanh` function. 
 
 #### `Critic`
-The input of the network is 48 as the 2 agent's state size 2x24. The first hidden layer has 256 nodes, followed by a Batch Normalization layer.Then, we concatenate this layer's output with the actions which is the actions from both agents 2x2 = 4. Then, the second hidden layer contains 256 nodes. The output layer have 1 node which is the Q-values. All these layers are separated by Rectifier Linear Units (ReLu). 
+The input of the network is 48 as the 2 agent's state size 2x24. The first hidden layer has 256 nodes, followed by a Batch Normalization layer.Then, we concatenate this layer's output with the actions which is the actions from both agents 2x2 = 4. Then, the second hidden layer contains 128 nodes. The output layer have 1 node which is the Q-values. All these layers are separated by Rectifier Linear Units (ReLu). 
 
 #### Other training hyperparameter
 `n_episodes=5000 #Number of episodes we trained`
