@@ -17,7 +17,7 @@ UPDATE_EVERY = 2        # how often to update the network
 class MADDPG:
     def __init__(self, num_agents, state_size, action_size, random_seed):
         super(MADDPG, self).__init__()
-        self.agents = [Agent(i, state_size, action_size, random_seed) for i in range(num_agents)]
+        self.agents = [Agent(i, state_size, action_size, num_agents, random_seed) for i in range(num_agents)]
         self.memory = ReplayBuffer(action_size, BUFFER_SIZE, BATCH_SIZE, seed=random_seed)
         self.t_step = 0
         
